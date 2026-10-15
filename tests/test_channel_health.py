@@ -140,7 +140,7 @@ def test_client_counts_quota_and_retries(monkeypatch):
     assert c.calls == 2 and c.units == 2
     c2 = ch.Client("k", FakeSession([FakeResp(200, {"items": []})]))
     c2.get("search", q="x")
-    assert c2.units == 100
+    assert c2.units == 0 and c2.searches == 1   # search.list draws on its own allowance
 
 
 def test_client_stops_on_quota():

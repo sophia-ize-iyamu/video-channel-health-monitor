@@ -1,4 +1,4 @@
-"""Channel Health Monitor.
+"""Video Channel Health Monitor.
 
 Pulls each channel's recent uploads and public statistics through the YouTube Data API v3, stores every pull
 as a snapshot in SQLite, compares each recent upload with what the same channel's uploads of the same format
@@ -26,7 +26,8 @@ import requests
 HERE = os.path.dirname(os.path.abspath(__file__))
 DB = os.path.join(HERE, "data", "channel_health.db")
 API = "https://www.googleapis.com/youtube/v3/"
-COST = {"channels": 1, "playlistItems": 1, "videos": 1, "search": 100}  # quota units per call
+COST = {"channels": 1, "playlistItems": 1, "videos": 1}  # units per call, from the default 10,000-a-day pool
+# search.list has its own allowance (100 calls a day by default), so searches are counted separately.
 MAX_VIDEOS = 200        # most recent uploads pulled per channel
 HISTORY_DAYS = 365      # the baseline uses uploads up to a year old
 RECENT_DAYS = 30        # only uploads from the last 30 days are flagged
@@ -52,6 +53,7 @@ class Client:
         self.key = key
         self.s = session or requests.Session()
         self.units = 0
+        self.searches = 0
         self.calls = 0
         self.errors = []
 
@@ -65,7 +67,10 @@ class Client:
                 time.sleep(2 ** attempt)
                 continue
             self.calls += 1
-            self.units += COST[resource]
+            if resource == "search":
+                self.searches += 1
+            else:
+                self.units += COST[resource]
             if r.status_code == 200:
                 return r.json()
             reason = ""
@@ -190,7 +195,7 @@ PARTS = "id,snippet,statistics,contentDetails"
 
 
 def resolve_channel(c, entry):
-    """Look a channel up by pinned ID (1 unit), then handle (1 unit), then search (100 units)."""
+    """Look a channel up by pinned ID (1 unit), then handle (1 unit), then search (1 call from the search allowance)."""
     if entry.get("id"):
         j = c.get("channels", part=PARTS, id=entry["id"])
         if j and j.get("items"):
@@ -416,13 +421,13 @@ def report():
     total = sum(s["n"] for s in summary)
     html = f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1"><meta name="color-scheme" content="light">
-<title>Channel Health Monitor</title>
+<title>Video Channel Health Monitor</title>
 <style>body{{font-family:Calibri,"Segoe UI",Arial,sans-serif;max-width:1040px;margin:24px auto;padding:0 16px;color:#1f2328;background:#fff;line-height:1.45}}
 h1{{margin-bottom:4px}}h2{{margin-top:28px}}table{{border-collapse:collapse;width:100%;font-size:14px;margin:8px 0 16px}}
 th,td{{border-bottom:1px solid #dde1e6;padding:6px 8px;text-align:left;vertical-align:top}}th{{background:#f2f4f7}}
 td{{font-variant-numeric:tabular-nums}}.note{{color:#4b5563;font-size:13.5px;max-width:75ch}}img{{max-width:100%}}
 .wrap{{overflow-x:auto}}summary{{cursor:pointer;margin:4px 0 12px}}</style></head><body>
-<h1>Channel Health Monitor</h1>
+<h1>Video Channel Health Monitor</h1>
 <p class="note">Snapshot taken {escape(run['ts'])} UTC through the YouTube Data API v3: {len(chans)} channels and {total:,} uploads
 from the last 12 months (up to {MAX_VIDEOS} most recent per channel). This pull used {run['units']} quota units in {run['calls']}
 calls, against a default daily quota of 10,000. Snapshots stored so far: {nruns}.</p>
@@ -470,7 +475,7 @@ def main():
         with open(os.path.join(HERE, "channels.json"), encoding="utf-8") as fh:
             channels = json.load(fh)
         run_id, c = fetch(key, channels)
-        print(f"snapshot {run_id}: {c.calls} calls, {c.units} quota units")
+        print(f"snapshot {run_id}: {c.calls} calls, {c.units} quota units, {c.searches} searches")
         for e in c.errors:
             print("  -", e)
     if cmd in ("report", "all"):

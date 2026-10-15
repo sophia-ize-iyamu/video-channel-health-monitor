@@ -1,4 +1,4 @@
-# Channel Health Monitor
+# Video Channel Health Monitor
 
 A Python tool built on the YouTube Data API v3. It pulls the recent uploads and public statistics of a set of channels, stores each pull as a snapshot in SQLite, and writes a one-page HTML report that flags uploads doing far better or far worse than that channel's uploads usually do at the same age.
 
@@ -27,7 +27,7 @@ The channels are listed in `channels.json`, pinned by channel ID.
 
 **Snapshots.** Every run is kept. From the second run on, the report shows each channel's views gained since the previous snapshot and the ten uploads that gained the most.
 
-**Quota and errors.** The client counts quota units per call, retries server errors and rate limits with backoff, and stops cleanly if the daily quota runs out. Errors are logged without the request URL, so the key can't leak into the log.
+**Quota and errors.** The client counts quota units per call (searches are counted separately, since `search.list` has its own daily allowance), retries server errors and rate limits with backoff, and stops cleanly if the daily quota runs out. Errors are logged without the request URL, so the key can't leak into the log.
 
 ## Results
 
@@ -56,5 +56,5 @@ The first version looked channels up by @handle, and two lookups returned the wr
 - `channel_health.py`: API client, snapshot storage, scoring and report
 - `channels.json`: the channels tracked, with pinned IDs
 - `tests/test_channel_health.py`: 27 tests covering duration parsing, format rules, the trend fit, flagging, paging, quota handling and channel lookup
-- `report/`: the latest report and chart
+- `report/`: the HTML report and chart, written when you run the tool (not committed)
 - `data/`: the SQLite snapshots (not committed)
