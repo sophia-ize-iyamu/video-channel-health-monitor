@@ -1,0 +1,12 @@
+[
+ {"name": "CFL", "id": "UC7u88nvWn2TfoGq2QBNXB7w", "handle": "@CFL", "vertical": "Sports"},
+ {"name": "Toronto Raptors", "id": "UCYBFE432C2AmNRDGEXE4uVg", "handle": "@torontoraptors", "vertical": "Sports"},
+ {"name": "TSN", "id": "UC--i2rV5NCxiEIPefr3l-zQ", "handle": "@tsn_sports", "vertical": "Sports"},
+ {"name": "CBC News", "id": "UCuFFtHWoLl5fauMMD5Ww2jA", "handle": "@CBCNews", "vertical": "News"},
+ {"name": "APTN News", "id": "UCA-IcIBtmwCirNr1f-n_SRA", "handle": "@APTNNews", "vertical": "News"},
+ {"name": "Kurtis Conner", "id": "UC7zsxKqd5MicTf4VhS9Y74g", "handle": "@KurtisConner", "vertical": "Creator"},
+ {"name": "Alexandra Gater", "id": "UCrh9tOpAY2-Ev5pRssXq2Wg", "handle": "@AlexandraGater", "vertical": "Creator"},
+ {"name": "Lilly Singh", "id": "UCfm4y4rHF5HGrSr-qbvOwOg", "handle": "@lilly", "vertical": "Creator"},
+ {"name": "The Weeknd", "id": "UC0WP5P-ufpRfjbNrmOWwLBQ", "handle": "@TheWeeknd", "vertical": "Music"},
+ {"name": "Tate McRae", "id": "UCQh6LB206jF3JxpCDD-fp5Q", "handle": "@TateMcRae", "vertical": "Music"}
+]
