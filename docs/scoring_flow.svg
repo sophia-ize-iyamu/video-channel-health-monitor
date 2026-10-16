@@ -1,0 +1,139 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 928" width="960" height="928" role="img" aria-label="Scoring flow from 1,169 uploads analysed in snapshot 1 to 60 recent uploads above expected, 5 below expected and 837 not flagged">
+  <title>Scoring flow for recent uploads</title>
+  <desc>Counts from snapshot 1, 15 Oct 2026, 19:06 UTC. Step 1, uploads analysed: 1,169 uploads from 10 channels, up to 365 days old, with 605 Videos, 500 Shorts and 64 Live and premieres; 2 scheduled or live now were left out. Step 2: 1,084 are eligible for a baseline, with the view count known, at least 1 day old, and at least 8 such uploads for the channel in that format, in 18 groups; 69 were under 1 day old and 16 were in groups with fewer than 8. Step 3: for each channel and format, a Theil-Sen line is fitted through y = log(views + 1) against x = log(age in days); the slope is the median of all pairwise slopes and the intercept is the median of y - slope times x, so a few breakout uploads have little effect on the line. Step 4: expected views is the line at the upload's age, ratio = (views + 1) / (expected + 1), gap = log(ratio). Step 5: spread = 1.4826 times the median absolute deviation of the gaps, at least 0.1, and z = (gap - median gap) / spread. Step 6: of the 902 uploads from the last 30 days, 60 are above expected (ratio over 2x and z over 2), 5 are below expected (ratio under 0.5x and z under -2) and 837 are not flagged. With the cut-off alone, under 0.5x or over 2x, 446 of the 902 would be flagged (49%): 263 over 2x and 183 under 0.5x. The cut-off and spread check together flag 65 (7%).</desc>
+  <defs>
+    <marker id="arrow-ink" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,1.5 L10,5 L0,8.5 Z" fill="#57606A"/>
+    </marker>
+    <marker id="arrow-above" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,1.5 L10,5 L0,8.5 Z" fill="#1F7A4D"/>
+    </marker>
+    <marker id="arrow-below" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,1.5 L10,5 L0,8.5 Z" fill="#B42318"/>
+    </marker>
+    <marker id="arrow-none" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,1.5 L10,5 L0,8.5 Z" fill="#8C959F"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="960" height="928" fill="#FFFFFF"/>
+
+  <g font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" fill="#1F2328" style="font-variant-ligatures: none">
+    <!-- Heading -->
+    <text x="32" y="36" font-size="18" font-weight="700">Scoring flow for recent uploads</text>
+    <text x="32" y="58" font-size="13" fill="#57606A">Counts from snapshot 1, 15 Oct 2026, 19:06 UTC</text>
+
+    <!-- Step 1 -->
+    <rect x="32" y="74" width="896" height="90" rx="8" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <circle cx="58" cy="99" r="13" fill="#1F2328"/>
+    <text x="58" y="104" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">1</text>
+    <text x="84" y="104" font-size="16" font-weight="700">Uploads analysed</text>
+    <text x="84" y="125" font-size="14">10 channels, up to 365 days old</text>
+    <circle cx="361" cy="99" r="5" fill="#2F5D7C"/>
+    <text x="372" y="104" font-size="14"><tspan font-weight="700">605</tspan> Videos</text>
+    <circle cx="465" cy="99" r="5" fill="#D9822B"/>
+    <text x="476" y="104" font-size="14"><tspan font-weight="700">500</tspan> Shorts</text>
+    <circle cx="566" cy="99" r="5" fill="#6B8E23"/>
+    <text x="577" y="104" font-size="14"><tspan font-weight="700">64</tspan> Live and premieres</text>
+    <rect x="356" y="116" width="286.75" height="10" fill="#2F5D7C"/>
+    <rect x="644.75" y="116" width="235.81" height="10" fill="#D9822B"/>
+    <rect x="882.56" y="116" width="29.44" height="10" fill="#6B8E23"/>
+    <text x="356" y="146" font-size="14" fill="#57606A">2 scheduled or live now left out</text>
+
+    <!-- Step 1 to 2 -->
+    <path d="M172,164 V198" fill="none" stroke="#57606A" stroke-width="1.5" marker-end="url(#arrow-ink)"/>
+    <text x="186" y="187" font-size="14"><tspan font-weight="700">1,169</tspan> uploads</text>
+
+    <!-- Step 2 -->
+    <rect x="32" y="200" width="896" height="90" rx="8" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <circle cx="58" cy="225" r="13" fill="#1F2328"/>
+    <text x="58" y="230" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">2</text>
+    <text x="84" y="230" font-size="16" font-weight="700">Eligible for a baseline</text>
+    <text x="356" y="230" font-size="14">View count known and at least 1 day old</text>
+    <text x="356" y="251" font-size="14">The channel has at least 8 such uploads in that format</text>
+    <text x="356" y="272" font-size="14" fill="#57606A">Left out: 69 under 1 day old, 16 in groups with fewer than 8</text>
+
+    <!-- Step 2 to 3 -->
+    <path d="M172,290 V324" fill="none" stroke="#57606A" stroke-width="1.5" marker-end="url(#arrow-ink)"/>
+    <text x="186" y="313" font-size="14"><tspan font-weight="700">1,084</tspan> uploads in 18 groups</text>
+
+    <!-- Step 3 -->
+    <rect x="32" y="326" width="896" height="111" rx="8" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <circle cx="58" cy="351" r="13" fill="#1F2328"/>
+    <text x="58" y="356" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">3</text>
+    <text x="84" y="356" font-size="16" font-weight="700">Fit per channel and format</text>
+    <text x="356" y="356" font-size="14">Line through y = log(views + 1) against x = log(age in days)</text>
+    <text x="356" y="377" font-size="14">Theil-Sen: slope = median of all pairwise slopes</text>
+    <text x="356" y="398" font-size="14">Intercept = median of (y - slope &#215; x)</text>
+    <text x="356" y="419" font-size="14" fill="#57606A">A few breakout uploads have little effect on the line</text>
+
+    <!-- Step 3 to 4 -->
+    <path d="M172,437 V471" fill="none" stroke="#57606A" stroke-width="1.5" marker-end="url(#arrow-ink)"/>
+    <text x="186" y="460" font-size="14"><tspan font-weight="700">18</tspan> fitted lines</text>
+
+    <!-- Step 4 -->
+    <rect x="32" y="473" width="896" height="69" rx="8" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <circle cx="58" cy="498" r="13" fill="#1F2328"/>
+    <text x="58" y="503" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">4</text>
+    <text x="84" y="503" font-size="16" font-weight="700">Ratio and gap per upload</text>
+    <text x="356" y="503" font-size="14">Expected views = the line at the upload's age</text>
+    <text x="356" y="524" font-size="14">Ratio = (views + 1) / (expected + 1), gap = log(ratio)</text>
+
+    <!-- Step 4 to 5 -->
+    <path d="M172,542 V576" fill="none" stroke="#57606A" stroke-width="1.5" marker-end="url(#arrow-ink)"/>
+    <text x="186" y="565" font-size="14"><tspan font-weight="700">1,084</tspan> gaps</text>
+
+    <!-- Step 5 -->
+    <rect x="32" y="578" width="896" height="69" rx="8" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <circle cx="58" cy="603" r="13" fill="#1F2328"/>
+    <text x="58" y="608" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">5</text>
+    <text x="84" y="608" font-size="16" font-weight="700">Spread per group</text>
+    <text x="356" y="608" font-size="14">Spread = 1.4826 &#215; median absolute deviation of the gaps, at least 0.1</text>
+    <text x="356" y="629" font-size="14">z = (gap - median gap) / spread</text>
+
+    <!-- Step 5 to 6 -->
+    <path d="M172,647 V681" fill="none" stroke="#57606A" stroke-width="1.5" marker-end="url(#arrow-ink)"/>
+    <text x="186" y="670" font-size="14"><tspan font-weight="700">1,084</tspan> scored uploads</text>
+
+    <!-- Step 6 -->
+    <rect x="32" y="683" width="280" height="70" rx="8" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <circle cx="58" cy="708" r="13" fill="#1F2328"/>
+    <text x="58" y="713" font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">6</text>
+    <text x="84" y="713" font-size="16" font-weight="700">Recent uploads only</text>
+    <text x="84" y="735" font-size="14">Last 30 days</text>
+
+    <!-- Note beside step 6: flags under each rule, as a share of the 902 -->
+    <rect x="340" y="683" width="588" height="70" rx="8" fill="#FFFFFF" stroke="#D0D7DE" stroke-dasharray="4 3"/>
+    <text x="356" y="713" font-size="14" fill="#57606A">Cut-off alone, under 0.5x or over 2x</text>
+    <text x="356" y="735" font-size="14" fill="#57606A">Cut-off and spread check</text>
+    <rect x="620" y="704" width="180" height="10" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <rect x="620" y="726" width="180" height="10" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <rect x="620" y="704" width="89" height="10" fill="#57606A"/>
+    <rect x="620" y="726" width="12.97" height="10" fill="#57606A"/>
+    <text x="814" y="713" font-size="14"><tspan font-weight="700">446</tspan> of 902</text>
+    <text x="814" y="735" font-size="14"><tspan font-weight="700">65</tspan> of 902</text>
+
+    <!-- Split into flags -->
+    <path d="M172,753 V793" fill="none" stroke="#57606A" stroke-width="1.5"/>
+    <text x="186" y="778" font-size="14"><tspan font-weight="700">902</tspan> uploads</text>
+    <path d="M172,793 H788" fill="none" stroke="#57606A" stroke-width="1.5" stroke-linecap="square"/>
+    <path d="M172,793 V831" fill="none" stroke="#1F7A4D" stroke-width="1.5" marker-end="url(#arrow-above)"/>
+    <path d="M480,793 V831" fill="none" stroke="#B42318" stroke-width="1.5" marker-end="url(#arrow-below)"/>
+    <path d="M788,793 V831" fill="none" stroke="#8C959F" stroke-width="1.5" marker-end="url(#arrow-none)"/>
+    <text x="186" y="818" font-size="14" fill="#1F7A4D"><tspan font-weight="700">60</tspan> uploads</text>
+    <text x="494" y="818" font-size="14" fill="#B42318"><tspan font-weight="700">5</tspan> uploads</text>
+    <text x="802" y="818" font-size="14" fill="#57606A"><tspan font-weight="700">837</tspan> uploads</text>
+
+    <!-- Outcomes -->
+    <rect x="32" y="833" width="280" height="71" rx="8" fill="#FFFFFF" stroke="#1F7A4D" stroke-width="2"/>
+    <text x="172" y="863" font-size="16" font-weight="700" fill="#1F7A4D" text-anchor="middle">Above expected</text>
+    <text x="172" y="886" font-size="14" text-anchor="middle">Ratio &gt; 2x and z &gt; 2</text>
+
+    <rect x="340" y="833" width="280" height="71" rx="8" fill="#FFFFFF" stroke="#B42318" stroke-width="2"/>
+    <text x="480" y="863" font-size="16" font-weight="700" fill="#B42318" text-anchor="middle">Below expected</text>
+    <text x="480" y="886" font-size="14" text-anchor="middle">Ratio &lt; 0.5x and z &lt; -2</text>
+
+    <rect x="648" y="833" width="280" height="71" rx="8" fill="#FFFFFF" stroke="#8C959F" stroke-width="2"/>
+    <text x="788" y="863" font-size="16" font-weight="700" fill="#57606A" text-anchor="middle">Not flagged</text>
+    <text x="788" y="886" font-size="14" text-anchor="middle">All other recent uploads</text>
+  </g>
+</svg>

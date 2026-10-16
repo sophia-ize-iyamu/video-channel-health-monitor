@@ -1,60 +1,124 @@
 # Video Channel Health Monitor
 
-A Python tool built on the YouTube Data API v3. It pulls the recent uploads and public statistics of a set of channels, stores each pull as a snapshot in SQLite, and writes a one-page HTML report that flags uploads doing far better or far worse than that channel's uploads usually do at the same age.
+A Python tool built on the YouTube Data API v3. It checks the recent uploads of 10 Canadian channels and flags the ones far above or below the views that channel's uploads usually have at the same age.
+
+![The tool's channel summary for snapshot 1](docs/report_preview.png)
+
+*The tool's report for snapshot 1, taken 15 Oct 2026, 19:06 UTC. Source: YouTube Data API v3. The flag columns are this project's own calculation.*
+
+## At a glance
+
+| Snapshot 1 | 15 Oct 2026, 19:06 UTC |
+|---|---|
+| Channels | 10 Canadian channels in sports, news, creators and music |
+| Uploads analysed | 1,169 from the last 12 months |
+| API use | 64 calls and 64 of the 10,000 daily quota units |
+| Flags, last 30 days | 60 above expected, 5 below |
+| Tests | 28 |
 
 ## Goal
 
-A person looking after many channels can't open every channel's analytics each morning. This tool runs that check for ten Canadian channels (CFL, Toronto Raptors, TSN, CBC News, APTN News, Kurtis Conner, Alexandra Gater, Lilly Singh, The Weeknd and Tate McRae) in sports, news, creators and music, using only public data, and lists the recent uploads worth a closer look.
+Checking every channel's analytics by hand each morning takes too long for a team that looks after many channels. This tool runs that check for CFL, Toronto Raptors, TSN, CBC News, APTN News, Kurtis Conner, Alexandra Gater, Lilly Singh, The Weeknd and Tate McRae, using public data, and lists the recent uploads worth a closer look.
+
+## Process flow
+
+![Process flow for each run](docs/pipeline.svg)
+
+Each run reads the channel list, pulls recent uploads and their statistics from the API, and saves them as a snapshot in SQLite. It then scores every upload and writes the report. A full run for the 10 channels takes 64 API calls.
+
+## Method
+
+### Format of each upload
+
+![Format rule for each upload](docs/format_rule.svg)
+
+The Data API has no Shorts field, so the tool applies YouTube's own rule: a vertical or square upload up to 3 minutes long is a Short (60 seconds before 15 Oct 2024). Orientation comes from the player size the API returns. Premieres carry the same live-stream details as live streams, so the two share a group.
+
+### Expected views at each age
+
+![Expected views for TSN Shorts](docs/expected_curve_example.png)
+
+Views grow with age, so a 3-day-old upload is compared with what the same channel's uploads of the same format usually have at 3 days. For each channel and format with at least 8 uploads aged 1 to 365 days, the tool fits a line through log(views) against log(age) with the Theil-Sen method. It takes the median of all pairwise slopes, so a few breakout uploads have little effect on the line. Expected views is the line's value at an upload's age.
+
+### Flags
+
+![Scoring flow for recent uploads](docs/scoring_flow.svg)
+
+Views on busy sports and news channels often come in at a quarter or 4 times the expected figure. A plain cut-off at half or double would flag 446 of the 902 recent uploads, close to half of them.
+
+![Multiple of expected views for recent uploads](docs/ratio_distribution.png)
+
+The tool also measures how unusual each gap is for that channel, using the median absolute deviation. An upload from the last 30 days is flagged when its views are under half or over double the expected figure and the gap is more than 2 robust standard deviations from the channel's usual spread. That leaves 65 flags: 60 above expected and 5 below.
+
+### Channel lookup
+
+![Channel lookup and name check](docs/channel_lookup.svg)
+
+The 1st version looked channels up by @handle, and two lookups returned the wrong channel. @TSN returned ТСН, a Ukrainian news channel named in Cyrillic letters, and @Raptors returned a personal channel with 6 subscribers. Channels are now pinned by ID, and any lookup by handle or search is checked against the expected name before its data is stored.
+
+### Snapshots
+
+![Snapshot tables in SQLite](docs/snapshot_schema.svg)
+
+Each run is stored as a snapshot in 3 SQLite tables. The report compares the latest snapshot with the one before it to show views gained. Snapshots older than 30 days are deleted at the start of each run, in line with YouTube's rules on stored API data.
+
+### Quota and errors
+
+The client counts quota units for every call and counts searches separately, since `search.list` has its own allowance of 100 calls a day. It retries server errors and rate limits with backoff and stops cleanly if the daily quota runs out. Errors are logged without the request URL, which keeps the API key out of the log.
+
+## Results
+
+All figures below come from snapshot 1 (15 Oct 2026, 19:06 UTC) unless a chart says otherwise. Source: YouTube Data API v3.
+
+![Format mix by channel](docs/format_mix.png)
+
+Shorts were 500 of the 1,169 uploads (43%). The mix ranged from 84% Shorts for Lilly Singh to none for Kurtis Conner.
+
+![Uploads per week by channel](docs/cadence.png)
+
+The busiest channels reached the 200-upload cap within days. CBC News's 200 most recent uploads covered 10 days, about 139 a week, so its baseline reflects those 10 days.
+
+![Flags by channel](docs/flags_by_channel.png)
+
+CFL had the most uploads above expected, with 19. The largest breakout was a TSN Short of Gavin McKenna with 738,849 views at 9 days old, about 123 times what TSN's Shorts usually have at that age. Two of the 5 uploads below expected were APTN News language versions of one program, in Plains Cree and Kanien'kéha.
+
+![Views gained per hour by channel](docs/growth.png)
+
+A 2nd snapshot 70 minutes later shows how fast each channel's uploads were gaining views. CBC News gained the most, 50,521 views an hour across 198 uploads. Tate McRae gained 42,655 an hour from 50 uploads.
 
 ## Setup
 
 1. Install Python 3.11 or later, then run `pip install -r requirements.txt`.
 2. In Google Cloud, enable the YouTube Data API v3 and create an API key restricted to that API.
 3. Save the key as a user environment variable named `YOUTUBE_API_KEY`. On Windows, search the Start menu for "Edit environment variables for your account". The code reads the key from the environment and never writes it to the database, log or report.
-4. Run `python channel_health.py all` to pull a snapshot and build `report/index.html`. Run `python -m pytest -q tests` for the tests.
+4. Run `python channel_health.py all` to pull a snapshot and build `report/index.html`. Use `python channel_health.py report --run N` to rebuild the report for an earlier snapshot that's still stored.
+5. Run `python make_figures.py --run N` to rebuild the charts in `docs/` from snapshot N, and `python -m pytest -q tests` for the 28 tests. The charts in this README come from snapshot 1.
 
-The channels are listed in `channels.json`, pinned by channel ID.
+## YouTube API policies
 
-## Method
+This tool uses YouTube API Services. By using it, you agree to be bound by the [YouTube Terms of Service](https://www.youtube.com/t/terms). See also the [Google Privacy Policy](https://www.google.com/policies/privacy).
 
-**Uploads.** For each channel, the tool reads the uploads playlist 50 items at a time, up to the 200 most recent uploads from the last 12 months, and requests their details from `videos.list` in batches of 50.
+The tool collects no personal data. Stored YouTube data stays on your machine in `data/` and `report/`, which `.gitignore` keeps out of the repo, and snapshots older than 30 days are deleted at the start of each run.
 
-**Formats.** The Data API has no field that marks a Short, so the tool applies YouTube's rule for uploads: a vertical or square video up to 3 minutes long is a Short (60 seconds for uploads before 15 October 2024). Orientation comes from the player width and height the API returns. The API marks premieres the same way as live streams, so the two share one group. Scheduled and in-progress streams aren't scored, and an upload that hides its view count is left out rather than read as zero.
+Expected views and flags are this project's own calculations. YouTube's Developer Policies allow derived metrics like these for API clients approved through the API Compliance Audit, under the Analytics & Reporting use case. This repo is a personal prototype, so a version for partners would go through that review first. The charts and figures here are dated examples from 15 Oct 2026.
 
-**Expected views.** For each channel and format with at least 8 uploads aged 1 to 365 days, the tool fits a line through log(views) against log(age) using the Theil-Sen method, which takes the median of all pairwise slopes. A few breakout uploads can't pull that line the way they would pull a least-squares fit. Expected views is the line's value at an upload's age.
-
-**Flags.** Views on busy sports and news channels often come in at a quarter or four times the expected figure, so a fixed cut-off would flag a large share of uploads. An upload from the last 30 days is flagged only when its views are under half or over double the expected figure and the gap is more than 2 robust standard deviations (1.4826 times the median absolute deviation) from that channel's usual spread.
-
-**Snapshots.** Every run is kept. From the second run on, the report shows each channel's views gained since the previous snapshot and the ten uploads that gained the most.
-
-**Quota and errors.** The client counts quota units per call (searches are counted separately, since `search.list` has its own daily allowance), retries server errors and rate limits with backoff, and stops cleanly if the daily quota runs out. Errors are logged without the request URL, so the key can't leak into the log.
-
-## Results
-
-First full snapshot, 15 October 2026 at 19:06 UTC:
-
-- 10 channels and 1,169 uploads from the last 12 months, pulled in 64 API calls for 64 quota units, under 1% of the default daily quota of 10,000.
-- Shorts were 500 of the 1,169 uploads (43%). The mix varied widely: 84% of Lilly Singh's uploads were Shorts, while Kurtis Conner posted none.
-- The busiest channels reached the 200-upload cap quickly. CBC News's 200 most recent uploads covered 10 days, about 139 a week.
-- 902 uploads from the last 30 days had a baseline. The tool flagged 60 above expected and 5 below.
-- The largest breakout was a TSN Short of Gavin McKenna with 738,849 views at 9 days old, about 123 times what TSN's Shorts usually have at that age.
-- Two of the five uploads below expected were APTN News language versions of the same program, translated into Plains Cree and Kanien'kéha. Each had under half the views expected for APTN's live streams and premieres at 15 days.
-
-The first version looked channels up by @handle, and two lookups returned the wrong channel: @TSN returned a Ukrainian news channel titled ТСН, and @Raptors a 6-subscriber personal account. Channels are now pinned by ID, and any lookup by handle or search is checked against the expected channel name before its data is stored.
+Not affiliated with or endorsed by YouTube or Google.
 
 ## Limitations
 
-- The tool sees public data only: views, likes and comments. Watch time, click-through rate, traffic sources and revenue need the channel owner's sign-in through the YouTube Analytics API.
-- Expected views come from uploads of different ages in a single snapshot, so a channel that is growing or shrinking quickly shifts its own baseline. Repeated snapshots give a cleaner measure of pace.
-- Shorts are identified with YouTube's published length and orientation rule, not a label from YouTube. If the API returns no player size, the tool falls back to length alone and says so in the run log.
-- Live streams and premieres can't be told apart through the Data API, so they're reported together.
+- The tool sees public counts only, such as views and likes. Watch time, click-through rate, traffic sources and revenue need the channel owner's sign-in through the YouTube Analytics API.
+- Expected views come from uploads of different ages in one snapshot, so a channel that is growing or shrinking quickly shifts its own baseline.
+- Shorts are identified with YouTube's published length and orientation rule, since the API has no Shorts label. Official Artist Channels moved to the 3-minute limit later, on 8 Dec 2025, and the tool applies the 15 Oct 2024 date to every channel.
+- Live streams and premieres are reported together, because the API marks them the same way.
 - For channels that hit the 200-upload cap within days, the baseline reflects only those days.
-- A flag marks an upload worth a look, not a problem. Low views can reflect a narrow audience, as with the language versions above.
+- A flag marks an upload worth a look. Low views can also reflect a narrow audience, as with the language versions above.
 
 ## Files
 
 - `channel_health.py`: API client, snapshot storage, scoring and report
-- `channels.json`: the channels tracked, with pinned IDs
-- `tests/test_channel_health.py`: 27 tests covering duration parsing, format rules, the trend fit, flagging, paging, quota handling and channel lookup
-- `report/`: the HTML report and chart, written when you run the tool (not committed)
+- `make_figures.py`: builds the README charts from a stored snapshot
+- `channels.json`: the 10 channels, pinned by ID
+- `tests/test_channel_health.py`: 28 tests covering duration parsing, format rules, the trend fit, flagging, paging, quota handling, channel lookup and the 30-day clean-up
+- `docs/`: the diagrams and charts in this README
+- `report/`: the HTML report, written when you run the tool (not committed)
 - `data/`: the SQLite snapshots (not committed)

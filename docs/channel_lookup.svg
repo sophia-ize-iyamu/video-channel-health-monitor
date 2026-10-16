@@ -1,0 +1,176 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 956" width="960" height="956" role="img" aria-label="Flowchart: each channels.json entry is looked up by pinned ID, then by handle, then by search, and a handle or search result must pass a name check before it's stored">
+  <title>Channel lookup and name check</title>
+  <desc>Flowchart of resolve_channel() and fetch() in channel_health.py for one entry in channels.json, which has a name, id, handle and vertical. Step 1, by pinned ID: channels.list with id, 1 unit. If found, the channel is stored, even if it has been renamed, and a title without the expected name is noted in the run log. If there's no ID or nothing is found, step 2, by handle: channels.list with forHandle, 1 unit. If there's no handle or nothing is found, step 3, by search: search.list for the name, 1 search, then channels.list with id, 1 unit. If nothing is found, the channel is skipped and the run log says channel not found. A channel found by handle or search goes to the name check, name_matches(): the expected name must be inside the channel title. Both are lower-cased, keeping only a-z and 0-9. Pass: stored, and the ID to pin is logged. Fail: skipped, and the run log shows the title returned. Default daily quota: 10,000 units, with a separate allowance of 100 searches. In snapshot 1, all 10 channels were found by ID, with 0 searches. Caught in the 1st version, when lookups used the handle only, with no name check: @TSN returned &#x0422;&#x0421;&#x041D;, a Ukrainian news channel titled in Cyrillic letters. The expected name TSN is compared as tsn, and the title &#x0422;&#x0421;&#x041D; as an empty string, because the Cyrillic letters are removed, so the check fails. @Raptors returned raptors, a personal channel with 6 subscribers and uploads from 2006-2009. The expected name Toronto Raptors is compared as torontoraptors, which isn't in raptors, so the check fails. Both are now pinned by ID: TSN is @tsn_sports and Toronto Raptors is @torontoraptors.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,1.5 L10,5 L0,8.5 Z" fill="#57606A"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="960" height="956" fill="#FFFFFF"/>
+
+  <g font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" fill="#1F2328" style="font-variant-ligatures: none">
+
+    <!-- Heading -->
+    <text x="32" y="40" font-size="18" font-weight="700">Channel lookup and name check</text>
+    <text x="32" y="62" font-size="13" fill="#57606A">The steps in <tspan font-family="Consolas, Menlo, monospace">resolve_channel()</tspan> and <tspan font-family="Consolas, Menlo, monospace">fetch()</tspan> for each entry in <tspan font-family="Consolas, Menlo, monospace">channels.json</tspan></text>
+    <text x="32" y="82" font-size="13" fill="#57606A">Default daily quota: 10,000 units, with a separate allowance of 100 searches</text>
+
+    <!-- Connectors -->
+    <g fill="none" stroke="#57606A" stroke-width="1.5">
+      <path d="M61,140 V178" marker-end="url(#arrow)"/>
+      <path d="M61,254 V296" marker-end="url(#arrow)"/>
+      <path d="M61,372 V414" marker-end="url(#arrow)"/>
+      <path d="M61,514 V556 H678" marker-end="url(#arrow)"/>
+      <path d="M332,206 H678" marker-end="url(#arrow)"/>
+      <path d="M332,324 H386" marker-end="url(#arrow)"/>
+      <path d="M332,442 H386" marker-end="url(#arrow)"/>
+      <path d="M624,338 H678" marker-end="url(#arrow)"/>
+      <path d="M624,428 H678" marker-end="url(#arrow)"/>
+    </g>
+
+    <!-- Arrow labels -->
+    <text x="75" y="164" font-size="13" font-family="Consolas, Menlo, monospace" fill="#57606A">name, id, handle, vertical</text>
+    <g font-size="13" font-weight="600">
+      <text x="75" y="280">No ID, or nothing found</text>
+      <text x="75" y="398">No handle, or nothing found</text>
+      <text x="75" y="540">Nothing found</text>
+      <text x="360" y="199" text-anchor="middle">Found</text>
+      <text x="360" y="317" text-anchor="middle">Found</text>
+      <text x="360" y="435" text-anchor="middle">Found</text>
+      <text x="651" y="331" text-anchor="middle">Pass</text>
+      <text x="651" y="421" text-anchor="middle">Fail</text>
+    </g>
+
+    <!-- Entry from channels.json -->
+    <rect x="32" y="100" width="300" height="40" rx="8" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <path d="M54,110.5 H63.5 L68.5,115.5 V129.5 H54 Z" fill="#FFFFFF" stroke="#57606A" stroke-width="1.25" stroke-linejoin="round"/>
+    <path d="M63.5,110.5 V115.5 H68.5" fill="none" stroke="#57606A" stroke-width="1.25" stroke-linejoin="round"/>
+    <text x="84" y="125" font-size="14">An entry in <tspan font-family="Consolas, Menlo, monospace">channels.json</tspan></text>
+
+    <!-- Lookup steps -->
+    <g fill="#F6F8FA" stroke="#0969DA" stroke-width="1.5">
+      <rect x="32" y="180" width="300" height="74" rx="8"/>
+      <rect x="32" y="298" width="300" height="74" rx="8"/>
+      <rect x="32" y="416" width="300" height="98" rx="8"/>
+    </g>
+    <g fill="#1F2328">
+      <circle cx="61" cy="206" r="13"/>
+      <circle cx="61" cy="324" r="13"/>
+      <circle cx="61" cy="442" r="13"/>
+    </g>
+    <g font-size="14" font-weight="700" fill="#FFFFFF" text-anchor="middle">
+      <text x="61" y="211">1</text>
+      <text x="61" y="329">2</text>
+      <text x="61" y="447">3</text>
+    </g>
+    <g font-size="16" font-weight="700">
+      <text x="84" y="211">By pinned ID</text>
+      <text x="84" y="329">By handle</text>
+      <text x="84" y="447">By search</text>
+    </g>
+    <g font-size="14">
+      <text x="48" y="238" font-family="Consolas, Menlo, monospace" fill="#0969DA">channels.list?id=</text>
+      <text x="48" y="356" font-family="Consolas, Menlo, monospace" fill="#0969DA">channels.list?forHandle=</text>
+      <text x="48" y="474"><tspan font-family="Consolas, Menlo, monospace" fill="#0969DA">search.list</tspan> for the name</text>
+      <text x="48" y="498">then <tspan font-family="Consolas, Menlo, monospace" fill="#0969DA">channels.list?id=</tspan></text>
+    </g>
+    <g font-size="13" fill="#57606A" text-anchor="end">
+      <text x="316" y="238">1 unit</text>
+      <text x="316" y="356">1 unit</text>
+      <text x="316" y="474">1 search</text>
+      <text x="316" y="498">1 unit</text>
+    </g>
+
+    <!-- Snapshot 1 note on the pinned ID path -->
+    <rect x="388" y="218" width="236" height="56" rx="8" fill="#FFFFFF" stroke="#D0D7DE" stroke-dasharray="4 3"/>
+    <text x="404" y="241" font-size="13"><tspan fill="#57606A">Snapshot 1: </tspan>all <tspan font-weight="700">10</tspan> channels</text>
+    <text x="404" y="260" font-size="13">found by ID, with <tspan font-weight="700">0</tspan> searches</text>
+
+    <!-- Name check -->
+    <rect x="388" y="298" width="236" height="170" rx="8" fill="#FFFFFF" stroke="#1F2328" stroke-width="1.5"/>
+    <polygon points="412,312 424,324 412,336 400,324" fill="#1F2328"/>
+    <text x="434" y="329" font-size="16" font-weight="700">Name check</text>
+    <text x="404" y="350" font-size="13" font-family="Consolas, Menlo, monospace" fill="#57606A">name_matches()</text>
+    <text x="404" y="377" font-size="14">The expected name must be</text>
+    <text x="404" y="397" font-size="14">inside the channel title</text>
+    <text x="404" y="423" font-size="13" fill="#57606A">Lower-cased, keeping only</text>
+    <text x="404" y="442" font-size="13" fill="#57606A">a-z and 0-9</text>
+
+    <!-- Outcomes -->
+    <g stroke-width="1.5">
+      <rect x="680" y="186" width="160" height="40" rx="20" fill="#E2D9F4" stroke="#6E40C9"/>
+      <rect x="680" y="318" width="160" height="40" rx="20" fill="#E2D9F4" stroke="#6E40C9"/>
+      <rect x="680" y="408" width="160" height="40" rx="20" fill="#EAECEF" stroke="#57606A"/>
+      <rect x="680" y="536" width="160" height="40" rx="20" fill="#EAECEF" stroke="#57606A"/>
+    </g>
+    <g font-size="14" font-weight="700" text-anchor="middle">
+      <text x="760" y="211">Stored</text>
+      <text x="760" y="343">Stored</text>
+      <text x="760" y="433" fill="#57606A">Skipped</text>
+      <text x="760" y="561" fill="#57606A">Skipped</text>
+    </g>
+    <g font-size="13" fill="#57606A">
+      <text x="680" y="246">Kept even if renamed</text>
+      <text x="680" y="265">A title without the name is logged</text>
+      <text x="680" y="378">The ID to pin is logged</text>
+      <text x="680" y="468">Logged with the title returned</text>
+      <text x="680" y="596">Logged as <tspan font-family="Consolas, Menlo, monospace">channel not found</tspan></text>
+    </g>
+
+    <!-- Caught in the 1st version -->
+    <rect x="32" y="624" width="896" height="308" rx="8" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <text x="48" y="652" font-size="16" font-weight="700">Caught in the 1st version</text>
+    <text x="48" y="673" font-size="13" fill="#57606A">Lookups by handle only, with no name check yet</text>
+    <g fill="#FFFFFF" stroke="#D0D7DE">
+      <rect x="48" y="689" width="424" height="198" rx="6"/>
+      <rect x="488" y="689" width="424" height="198" rx="6"/>
+    </g>
+    <g fill="none" stroke="#57606A" stroke-width="1.5">
+      <path d="M272,808 H306" marker-end="url(#arrow)"/>
+      <path d="M272,832 H306" marker-end="url(#arrow)"/>
+      <path d="M712,808 H746" marker-end="url(#arrow)"/>
+      <path d="M712,832 H746" marker-end="url(#arrow)"/>
+    </g>
+
+    <!-- TSN card -->
+    <text x="64" y="715" font-size="14" fill="#57606A"><tspan font-family="Consolas, Menlo, monospace" font-weight="700" fill="#1F2328">@TSN</tspan> returned</text>
+    <text x="64" y="745" font-size="20" font-weight="700">&#x0422;&#x0421;&#x041D;</text>
+    <text x="176" y="745" font-size="13" fill="#57606A">A Ukrainian news channel,</text>
+    <text x="176" y="763" font-size="13" fill="#57606A">titled in Cyrillic letters</text>
+    <g font-size="13" fill="#57606A">
+      <text x="144" y="791">As written</text>
+      <text x="320" y="791">As compared</text>
+      <text x="64" y="813">Expected</text>
+      <text x="64" y="837">Title</text>
+    </g>
+    <text x="144" y="813" font-size="14">TSN</text>
+    <text x="144" y="837" font-size="14">&#x0422;&#x0421;&#x041D;</text>
+    <text x="320" y="813" font-size="14" font-family="Consolas, Menlo, monospace">tsn</text>
+    <text x="320" y="837" font-size="14"><tspan font-family="Consolas, Menlo, monospace">""</tspan><tspan dx="8" font-size="13" fill="#57606A">nothing left</tspan></text>
+    <circle cx="72" cy="864" r="8" fill="#EAECEF" stroke="#57606A" stroke-width="1.5"/>
+    <path d="M68.75,860.75 L75.25,867.25 M75.25,860.75 L68.75,867.25" stroke="#57606A" stroke-width="1.75" stroke-linecap="round"/>
+    <text x="88" y="869" font-size="14"><tspan font-weight="700" fill="#57606A">Check fails:</tspan> the Cyrillic letters are removed</text>
+
+    <!-- Raptors card -->
+    <text x="504" y="715" font-size="14" fill="#57606A"><tspan font-family="Consolas, Menlo, monospace" font-weight="700" fill="#1F2328">@Raptors</tspan> returned</text>
+    <text x="504" y="745" font-size="20" font-weight="700">raptors</text>
+    <text x="616" y="745" font-size="13" fill="#57606A">A personal channel with 6 subscribers</text>
+    <text x="616" y="763" font-size="13" fill="#57606A">and uploads from 2006-2009</text>
+    <g font-size="13" fill="#57606A">
+      <text x="584" y="791">As written</text>
+      <text x="760" y="791">As compared</text>
+      <text x="504" y="813">Expected</text>
+      <text x="504" y="837">Title</text>
+    </g>
+    <text x="584" y="813" font-size="14">Toronto Raptors</text>
+    <text x="584" y="837" font-size="14">raptors</text>
+    <text x="760" y="813" font-size="14" font-family="Consolas, Menlo, monospace">torontoraptors</text>
+    <text x="760" y="837" font-size="14" font-family="Consolas, Menlo, monospace">raptors</text>
+    <circle cx="512" cy="864" r="8" fill="#EAECEF" stroke="#57606A" stroke-width="1.5"/>
+    <path d="M508.75,860.75 L515.25,867.25 M515.25,860.75 L508.75,867.25" stroke="#57606A" stroke-width="1.75" stroke-linecap="round"/>
+    <text x="528" y="869" font-size="14"><tspan font-weight="700" fill="#57606A">Check fails:</tspan> <tspan font-family="Consolas, Menlo, monospace">torontoraptors</tspan> isn't in <tspan font-family="Consolas, Menlo, monospace">raptors</tspan></text>
+
+    <!-- Pinned now -->
+    <text x="48" y="915" font-size="14">Both are now pinned by ID: TSN is <tspan font-family="Consolas, Menlo, monospace">@tsn_sports</tspan> and Toronto Raptors is <tspan font-family="Consolas, Menlo, monospace">@torontoraptors</tspan></text>
+  </g>
+</svg>

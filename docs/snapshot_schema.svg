@@ -1,0 +1,160 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 656" width="960" height="656" role="img" aria-label="SQLite snapshot schema: runs, channels and videos tables, their columns and join keys">
+  <title>SQLite snapshot schema</title>
+  <desc>SQLite tables in data/channel_health.db, as created by db_connect(): runs, channels and videos. runs, 1 row per snapshot: run_id INTEGER primary key, ts TEXT, units INTEGER, calls INTEGER, log TEXT. channels, 1 row per channel per snapshot: run_id INTEGER, channel_id TEXT, name TEXT, vertical TEXT, title TEXT, subs INTEGER, views INTEGER, video_count INTEGER. videos, 1 row per upload per snapshot: run_id INTEGER, video_id TEXT, channel_id TEXT, title TEXT, published TEXT, duration_s INTEGER, width INTEGER, height INTEGER, live_details INTEGER, broadcast TEXT, fmt TEXT, views INTEGER, likes INTEGER, comments INTEGER. channels rows and videos rows are tied to a runs row by run_id, 1 to many. videos rows are tied to a channels row by run_id and channel_id, 1 to many. subs, width, height, views, likes and comments are NULL when hidden or missing. Growth between snapshots matches videos rows from the latest run and the one before it on video_id. Snapshots older than 30 days are deleted at the start of each run.</desc>
+  <defs>
+    <marker id="many" viewBox="0 0 16 14" refX="16" refY="7" markerWidth="16" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto" overflow="visible">
+      <path d="M2,7 L16,1 M2,7 L16,7 M2,7 L16,13" fill="none" stroke="#57606A" stroke-width="1.5"/>
+    </marker>
+    <marker id="one" viewBox="0 0 16 14" refX="0" refY="7" markerWidth="16" markerHeight="14" markerUnits="userSpaceOnUse" orient="auto" overflow="visible">
+      <path d="M8,1 L8,13" fill="none" stroke="#57606A" stroke-width="1.5"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="960" height="656" fill="#FFFFFF"/>
+  <text x="24" y="36" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="18" font-weight="700" fill="#1F2328" style="font-variant-ligatures: none">SQLite snapshot schema</text>
+  <text x="24" y="58" font-family="Consolas, Menlo, monospace" font-size="13" fill="#57606A" style="font-variant-ligatures: none">data/channel_health.db</text>
+
+  <!-- Legend -->
+  <g font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#1F2328" style="font-variant-ligatures: none">
+    <rect x="439.8" y="45" width="26" height="18" rx="4" fill="#FFFFFF" stroke="#6E40C9" stroke-width="1"/>
+    <text x="452.8" y="58.5" font-family="Consolas, Menlo, monospace" font-weight="700" fill="#6E40C9" text-anchor="middle">PK</text>
+    <text x="473.8" y="58">Primary key</text>
+    <circle cx="585.9" cy="54" r="4" fill="#FFFFFF" stroke="#57606A" stroke-width="1.5"/>
+    <text x="597.9" y="58">NULL when hidden or missing</text>
+    <path d="M822.5,54 H862.5" fill="none" stroke="#57606A" stroke-width="1.5" marker-start="url(#one)" marker-end="url(#many)"/>
+    <text x="870.5" y="58">1 to many</text>
+  </g>
+
+  <!-- Relationships -->
+  <g fill="none" stroke="#57606A" stroke-width="1.5" style="font-variant-ligatures: none">
+    <path d="M364,142 H596" marker-start="url(#one)" marker-end="url(#many)"/>
+    <path d="M364,410 H540 Q548,410 548,402 V198 Q548,190 556,190 H596" marker-start="url(#one)" marker-end="url(#many)"/>
+    <path d="M194,256 V328" marker-start="url(#one)" marker-end="url(#many)"/>
+  </g>
+  <g font-family="Consolas, Menlo, monospace" font-size="13" fill="#1F2328" style="font-variant-ligatures: none">
+    <text x="480" y="133" text-anchor="middle">run_id</text>
+    <text x="452" y="401" text-anchor="middle">run_id, channel_id</text>
+    <text x="206" y="296">run_id</text>
+  </g>
+
+  <!-- runs -->
+  <g style="font-variant-ligatures: none">
+    <rect x="24" y="84" width="340" height="172" rx="6" fill="#FFFFFF"/>
+    <rect x="24" y="154" width="340" height="24" fill="#F6F8FA"/>
+    <rect x="24" y="202" width="340" height="24" fill="#F6F8FA"/>
+    <path d="M24,124 V90 Q24,84 30,84 H358 Q364,84 364,90 V124 Z" fill="#6E40C9"/>
+    <text x="40" y="110" font-family="Consolas, Menlo, monospace" font-size="16" font-weight="700" fill="#FFFFFF">runs</text>
+    <text x="348" y="109" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#FFFFFF" text-anchor="end">1 row per snapshot</text>
+    <g font-family="Consolas, Menlo, monospace">
+      <text x="56" y="147" font-size="14" fill="#1F2328">run_id</text>
+      <text x="348" y="146.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+      <rect x="116.08" y="133" width="26" height="18" rx="4" fill="#FFFFFF" stroke="#6E40C9" stroke-width="1"/>
+      <text x="129.08" y="146.5" font-size="13" font-weight="700" fill="#6E40C9" text-anchor="middle">PK</text>
+      <text x="56" y="171" font-size="14" fill="#1F2328">ts</text>
+      <text x="348" y="170.5" font-size="13" fill="#57606A" text-anchor="end">TEXT</text>
+      <text x="56" y="195" font-size="14" fill="#1F2328">units</text>
+      <text x="348" y="194.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+      <text x="56" y="219" font-size="14" fill="#1F2328">calls</text>
+      <text x="348" y="218.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+      <text x="56" y="243" font-size="14" fill="#1F2328">log</text>
+      <text x="348" y="242.5" font-size="13" fill="#57606A" text-anchor="end">TEXT</text>
+    </g>
+    <rect x="24" y="84" width="340" height="172" rx="6" fill="none" stroke="#6E40C9" stroke-width="1.5"/>
+  </g>
+
+  <!-- channels -->
+  <g style="font-variant-ligatures: none">
+    <rect x="24" y="328" width="340" height="244" rx="6" fill="#FFFFFF"/>
+    <rect x="24" y="398" width="340" height="24" fill="#F6F8FA"/>
+    <rect x="24" y="446" width="340" height="24" fill="#F6F8FA"/>
+    <rect x="24" y="494" width="340" height="24" fill="#F6F8FA"/>
+    <rect x="24" y="542" width="340" height="24" fill="#F6F8FA"/>
+    <path d="M24,368 V334 Q24,328 30,328 H358 Q364,328 364,334 V368 Z" fill="#6E40C9"/>
+    <text x="40" y="354" font-family="Consolas, Menlo, monospace" font-size="16" font-weight="700" fill="#FFFFFF">channels</text>
+    <text x="348" y="353" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#FFFFFF" text-anchor="end">1 row per channel per snapshot</text>
+    <g font-family="Consolas, Menlo, monospace">
+      <text x="56" y="391" font-size="14" fill="#1F2328">run_id</text>
+      <text x="348" y="390.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+      <text x="56" y="415" font-size="14" fill="#1F2328">channel_id</text>
+      <text x="348" y="414.5" font-size="13" fill="#57606A" text-anchor="end">TEXT</text>
+      <text x="56" y="439" font-size="14" fill="#1F2328">name</text>
+      <text x="348" y="438.5" font-size="13" fill="#57606A" text-anchor="end">TEXT</text>
+      <text x="56" y="463" font-size="14" fill="#1F2328">vertical</text>
+      <text x="348" y="462.5" font-size="13" fill="#57606A" text-anchor="end">TEXT</text>
+      <text x="56" y="487" font-size="14" fill="#1F2328">title</text>
+      <text x="348" y="486.5" font-size="13" fill="#57606A" text-anchor="end">TEXT</text>
+      <text x="56" y="511" font-size="14" fill="#1F2328">subs</text>
+      <text x="348" y="510.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+      <circle cx="42" cy="506" r="4" fill="#FFFFFF" stroke="#57606A" stroke-width="1.5"/>
+      <text x="56" y="535" font-size="14" fill="#1F2328">views</text>
+      <text x="348" y="534.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+      <text x="56" y="559" font-size="14" fill="#1F2328">video_count</text>
+      <text x="348" y="558.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+    </g>
+    <rect x="24" y="328" width="340" height="244" rx="6" fill="none" stroke="#6E40C9" stroke-width="1.5"/>
+  </g>
+
+  <!-- videos -->
+  <g style="font-variant-ligatures: none">
+    <rect x="596" y="84" width="340" height="388" rx="6" fill="#FFFFFF"/>
+    <rect x="596" y="154" width="340" height="24" fill="#F6F8FA"/>
+    <rect x="596" y="202" width="340" height="24" fill="#F6F8FA"/>
+    <rect x="596" y="250" width="340" height="24" fill="#F6F8FA"/>
+    <rect x="596" y="298" width="340" height="24" fill="#F6F8FA"/>
+    <rect x="596" y="346" width="340" height="24" fill="#F6F8FA"/>
+    <rect x="596" y="394" width="340" height="24" fill="#F6F8FA"/>
+    <rect x="596" y="442" width="340" height="24" fill="#F6F8FA"/>
+    <path d="M596,124 V90 Q596,84 602,84 H930 Q936,84 936,90 V124 Z" fill="#6E40C9"/>
+    <text x="612" y="110" font-family="Consolas, Menlo, monospace" font-size="16" font-weight="700" fill="#FFFFFF">videos</text>
+    <text x="920" y="109" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="13" fill="#FFFFFF" text-anchor="end">1 row per upload per snapshot</text>
+    <g font-family="Consolas, Menlo, monospace">
+      <text x="628" y="147" font-size="14" fill="#1F2328">run_id</text>
+      <text x="920" y="146.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+      <text x="628" y="171" font-size="14" fill="#1F2328">video_id</text>
+      <text x="920" y="170.5" font-size="13" fill="#57606A" text-anchor="end">TEXT</text>
+      <text x="628" y="195" font-size="14" fill="#1F2328">channel_id</text>
+      <text x="920" y="194.5" font-size="13" fill="#57606A" text-anchor="end">TEXT</text>
+      <text x="628" y="219" font-size="14" fill="#1F2328">title</text>
+      <text x="920" y="218.5" font-size="13" fill="#57606A" text-anchor="end">TEXT</text>
+      <text x="628" y="243" font-size="14" fill="#1F2328">published</text>
+      <text x="920" y="242.5" font-size="13" fill="#57606A" text-anchor="end">TEXT</text>
+      <text x="628" y="267" font-size="14" fill="#1F2328">duration_s</text>
+      <text x="920" y="266.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+      <text x="628" y="291" font-size="14" fill="#1F2328">width</text>
+      <text x="920" y="290.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+      <circle cx="614" cy="286" r="4" fill="#FFFFFF" stroke="#57606A" stroke-width="1.5"/>
+      <text x="628" y="315" font-size="14" fill="#1F2328">height</text>
+      <text x="920" y="314.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+      <circle cx="614" cy="310" r="4" fill="#FFFFFF" stroke="#57606A" stroke-width="1.5"/>
+      <text x="628" y="339" font-size="14" fill="#1F2328">live_details</text>
+      <text x="920" y="338.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+      <text x="628" y="363" font-size="14" fill="#1F2328">broadcast</text>
+      <text x="920" y="362.5" font-size="13" fill="#57606A" text-anchor="end">TEXT</text>
+      <text x="628" y="387" font-size="14" fill="#1F2328">fmt</text>
+      <text x="920" y="386.5" font-size="13" fill="#57606A" text-anchor="end">TEXT</text>
+      <text x="628" y="411" font-size="14" fill="#1F2328">views</text>
+      <text x="920" y="410.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+      <circle cx="614" cy="406" r="4" fill="#FFFFFF" stroke="#57606A" stroke-width="1.5"/>
+      <text x="628" y="435" font-size="14" fill="#1F2328">likes</text>
+      <text x="920" y="434.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+      <circle cx="614" cy="430" r="4" fill="#FFFFFF" stroke="#57606A" stroke-width="1.5"/>
+      <text x="628" y="459" font-size="14" fill="#1F2328">comments</text>
+      <text x="920" y="458.5" font-size="13" fill="#57606A" text-anchor="end">INTEGER</text>
+      <circle cx="614" cy="454" r="4" fill="#FFFFFF" stroke="#57606A" stroke-width="1.5"/>
+    </g>
+    <rect x="596" y="84" width="340" height="388" rx="6" fill="none" stroke="#6E40C9" stroke-width="1.5"/>
+  </g>
+
+  <!-- Growth note -->
+  <g font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#1F2328" style="font-variant-ligatures: none">
+    <rect x="596" y="488" width="340" height="84" rx="6" fill="#F6F8FA" stroke="#D0D7DE" stroke-width="1"/>
+    <text x="612" y="512" font-weight="700">Growth between snapshots</text>
+    <text x="612" y="533"><tspan font-family="Consolas, Menlo, monospace">videos</tspan> rows from the latest run and</text>
+    <text x="612" y="554">the one before it, matched on <tspan font-family="Consolas, Menlo, monospace">video_id</tspan></text>
+  </g>
+
+  <!-- Retention note -->
+  <g font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="14" fill="#1F2328" style="font-variant-ligatures: none">
+    <rect x="24" y="588" width="912" height="40" rx="6" fill="#F6F8FA" stroke="#D0D7DE" stroke-width="1"/>
+    <text x="40" y="613">Snapshots older than 30 days are deleted at the start of each run</text>
+  </g>
+</svg>

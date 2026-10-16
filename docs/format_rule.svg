@@ -1,0 +1,147 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 784" width="960" height="784" role="img" aria-label="Flowchart of the 5 checks in classify() that sort each upload into Videos, Shorts, Live and premieres, or Scheduled or live now, with counts from snapshot 1">
+  <title>Format rule for each upload</title>
+  <desc>Flowchart of classify() in channel_health.py, with counts from snapshot 1 for the 1,171 uploads up to 365 days old; 1,169 of them went on to scoring, and the other 2 were scheduled or live now. Each upload from videos.list becomes a row through parse_video() and goes through the checks in order. Check 1: if liveBroadcastContent is "upcoming" or "live", the upload is scheduled or live now and isn't scored (2 uploads). Check 2: if it has liveStreamingDetails, it goes to Live and premieres, since the API marks premieres the same way as live streams (64 uploads). Check 3: if its duration is 0 or longer than the Shorts limit, it's a Video (449 uploads); the limit is 3 minutes for uploads published from 15 Oct 2024 and 60 seconds for uploads published before. Check 4: if the API returned no player size (embedWidth and embedHeight), it's a Short judged by length alone and counted in the run log (0 uploads). Check 5: if its height is at least its width, so vertical or square, it's a Short (500 uploads); if it's wider than tall, it's a Video (156 uploads). Examples from the data: a 0:19 clip with a 563 by 1000 player is a Short, and a 2:58 lyric video with a 1000 by 563 player is a Video. Hidden view counts are stored as NULL and left out of scoring.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+      <path d="M0,0 L10,5 L0,10 Z" fill="#57606A"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="960" height="784" fill="#FFFFFF"/>
+  <g font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" style="font-variant-ligatures: none">
+
+    <!-- Heading -->
+    <text x="32" y="40" font-size="18" font-weight="700" fill="#1F2328">Format rule for each upload</text>
+    <text x="32" y="62" font-size="13" fill="#57606A">The checks in <tspan font-family="Consolas, Menlo, monospace">classify()</tspan>, in order. Counts cover the 1,171 snapshot 1 uploads up to 365 days old.</text>
+    <text x="32" y="82" font-size="13" fill="#57606A">1,169 of them went on to scoring, and the other 2 were scheduled or live now.</text>
+
+    <!-- Connectors -->
+    <g stroke="#57606A" stroke-width="1.5" fill="none">
+      <line x1="202" y1="144" x2="202" y2="175" marker-end="url(#arrow)"/>
+      <line x1="202" y1="236" x2="202" y2="267" marker-end="url(#arrow)"/>
+      <line x1="202" y1="328" x2="202" y2="359" marker-end="url(#arrow)"/>
+      <line x1="202" y1="464" x2="202" y2="495" marker-end="url(#arrow)"/>
+      <line x1="202" y1="556" x2="202" y2="587" marker-end="url(#arrow)"/>
+      <path d="M202,648 V720 H427" marker-end="url(#arrow)"/>
+      <line x1="372" y1="208" x2="427" y2="208" marker-end="url(#arrow)"/>
+      <line x1="372" y1="300" x2="427" y2="300" marker-end="url(#arrow)"/>
+      <line x1="372" y1="414" x2="427" y2="414" marker-end="url(#arrow)"/>
+      <line x1="372" y1="528" x2="427" y2="528" marker-end="url(#arrow)"/>
+      <line x1="372" y1="620" x2="427" y2="620" marker-end="url(#arrow)"/>
+    </g>
+
+    <!-- Start: an upload from the API -->
+    <rect x="78" y="100" width="248" height="44" rx="8" fill="#F6F8FA" stroke="#0969DA" stroke-width="1.5"/>
+    <text x="202" y="127" font-size="14" fill="#1F2328" text-anchor="middle">An upload from <tspan font-family="Consolas, Menlo, monospace" fill="#0969DA">videos.list</tspan></text>
+    <text x="214" y="166.5" font-size="13" fill="#57606A">Row from <tspan font-family="Consolas, Menlo, monospace">parse_video()</tspan></text>
+
+    <!-- Note on hidden view counts -->
+    <rect x="432" y="100" width="496" height="44" rx="8" fill="#F6F8FA" stroke="#D0D7DE" stroke-width="1"/>
+    <text x="448" y="126.5" font-size="13" fill="#1F2328"><tspan font-weight="700">Hidden view counts</tspan> are stored as NULL and left out of scoring</text>
+
+    <!-- Decision boxes -->
+    <g fill="#FFFFFF" stroke="#1F2328" stroke-width="1.5">
+      <rect x="32" y="180" width="340" height="56" rx="8"/>
+      <rect x="32" y="272" width="340" height="56" rx="8"/>
+      <rect x="32" y="364" width="340" height="100" rx="8"/>
+      <rect x="32" y="500" width="340" height="56" rx="8"/>
+      <rect x="32" y="592" width="340" height="56" rx="8"/>
+    </g>
+    <g fill="#1F2328">
+      <polygon points="56,196 68,208 56,220 44,208"/>
+      <polygon points="56,288 68,300 56,312 44,300"/>
+      <polygon points="56,402 68,414 56,426 44,414"/>
+      <polygon points="56,516 68,528 56,540 44,528"/>
+      <polygon points="56,608 68,620 56,632 44,620"/>
+    </g>
+    <g font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle">
+      <text x="56" y="212.5">1</text>
+      <text x="56" y="304.5">2</text>
+      <text x="56" y="418.5">3</text>
+      <text x="56" y="532.5">4</text>
+      <text x="56" y="624.5">5</text>
+    </g>
+    <g font-size="14" fill="#1F2328">
+      <text x="80" y="202.5"><tspan font-family="Consolas, Menlo, monospace">liveBroadcastContent</tspan> is</text>
+      <text x="80" y="223.5"><tspan font-family="Consolas, Menlo, monospace">"upcoming"</tspan> or <tspan font-family="Consolas, Menlo, monospace">"live"</tspan>?</text>
+      <text x="80" y="305">Has <tspan font-family="Consolas, Menlo, monospace">liveStreamingDetails</tspan>?</text>
+      <text x="80" y="388">Duration above 0 and within</text>
+      <text x="80" y="409">the Shorts limit?</text>
+      <text x="80" y="522.5">Did the API return a player size?</text>
+      <text x="80" y="614.5">Height at least width?</text>
+    </g>
+    <g font-size="13" fill="#57606A">
+      <text x="80" y="429">3 min if published from 15 Oct 2024</text>
+      <text x="80" y="448">60 s if published before</text>
+      <text x="80" y="543" font-family="Consolas, Menlo, monospace">embedWidth, embedHeight</text>
+      <text x="80" y="635">Vertical or square</text>
+    </g>
+
+    <!-- Branch labels -->
+    <g font-size="13" font-weight="600" fill="#1F2328">
+      <text x="400" y="201" text-anchor="middle">Yes</text>
+      <text x="400" y="293" text-anchor="middle">Yes</text>
+      <text x="400" y="407" text-anchor="middle">No</text>
+      <text x="400" y="521" text-anchor="middle">No</text>
+      <text x="400" y="613" text-anchor="middle">Yes</text>
+      <text x="214" y="258.5">No</text>
+      <text x="214" y="350.5">No</text>
+      <text x="214" y="486.5">Yes</text>
+      <text x="214" y="578.5">Yes</text>
+      <text x="214" y="688.5">No</text>
+    </g>
+
+    <!-- Outcomes, with the count from snapshot 1 -->
+    <g fill="#FFFFFF" stroke-width="2">
+      <rect x="432" y="180" width="232" height="56" rx="8" stroke="#8C959F"/>
+      <rect x="432" y="272" width="232" height="56" rx="8" stroke="#6B8E23"/>
+      <rect x="432" y="386" width="232" height="56" rx="8" stroke="#2F5D7C"/>
+      <rect x="432" y="500" width="232" height="56" rx="8" stroke="#D9822B"/>
+      <rect x="432" y="592" width="232" height="56" rx="8" stroke="#D9822B"/>
+      <rect x="432" y="692" width="232" height="56" rx="8" stroke="#2F5D7C"/>
+    </g>
+    <circle cx="452" cy="198" r="5" fill="#8C959F"/>
+    <circle cx="452" cy="290" r="5" fill="#6B8E23"/>
+    <circle cx="452" cy="404" r="5" fill="#2F5D7C"/>
+    <circle cx="452" cy="518" r="5" fill="#D9822B"/>
+    <circle cx="452" cy="610" r="5" fill="#D9822B"/>
+    <circle cx="452" cy="710" r="5" fill="#2F5D7C"/>
+    <g font-size="14" font-weight="700" fill="#1F2328">
+      <text x="466" y="203" fill="#57606A">Scheduled or live now</text>
+      <text x="466" y="295">Live and premieres</text>
+      <text x="466" y="409">Videos</text>
+      <text x="466" y="523">Shorts</text>
+      <text x="466" y="615">Shorts</text>
+      <text x="466" y="715">Videos</text>
+    </g>
+    <g font-size="13" fill="#57606A">
+      <text x="466" y="223">2 uploads</text>
+      <text x="466" y="315">64 uploads</text>
+      <text x="466" y="429">449 uploads</text>
+      <text x="466" y="543">0 uploads</text>
+      <text x="466" y="635">500 uploads</text>
+      <text x="466" y="735">156 uploads</text>
+    </g>
+
+    <!-- Remarks beside outcomes -->
+    <g font-size="13" fill="#57606A">
+      <text x="684" y="212.5">Not scored</text>
+      <text x="684" y="295">The API marks premieres</text>
+      <text x="684" y="314">the same way as live streams</text>
+      <text x="684" y="523">Judged by length alone and</text>
+      <text x="684" y="542">counted in the run log</text>
+    </g>
+
+    <!-- Worked examples -->
+    <g fill="#F6F8FA" stroke="#D0D7DE" stroke-width="1">
+      <rect x="684" y="580" width="244" height="80" rx="8"/>
+      <rect x="684" y="680" width="244" height="80" rx="8"/>
+    </g>
+    <text x="698" y="602" font-size="13" fill="#57606A">Example from the data</text>
+    <text x="698" y="622" font-size="14" font-weight="700" fill="#1F2328">A 0:19 clip</text>
+    <text x="698" y="642" font-size="13" fill="#1F2328">Player 563 &#215; 1000</text>
+
+    <text x="698" y="702" font-size="13" fill="#57606A">Example from the data</text>
+    <text x="698" y="722" font-size="14" font-weight="700" fill="#1F2328">A 2:58 lyric video</text>
+    <text x="698" y="742" font-size="13" fill="#1F2328">Player 1000 &#215; 563</text>
+  </g>
+</svg>

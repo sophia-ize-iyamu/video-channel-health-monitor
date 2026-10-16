@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 1165" width="960" height="1165" role="img" aria-label="Process flow for each run of the Video Channel Health Monitor: channel list, then 3 YouTube Data API v3 steps (find each channel, recent uploads, upload details), then sort by format, snapshot saved, score and report">
+  <title>Process flow for each run</title>
+  <desc>Step 1, channel list: channels.json holds 10 channels with pinned channel IDs. One channels.json entry at a time goes into the YouTube Data API v3 band. Step 2, find each channel: 1st try channels.list by pinned ID (1 unit), 2nd try channels.list by @handle (1 unit), 3rd try search.list by name (1 call from its own allowance of 100 a day) and then channels.list (1 unit). A channel found by handle or search is skipped if its title doesn't contain the expected name. The uploads playlist ID goes to step 3, recent uploads: playlistItems.list on the uploads playlist, newest first, 50 per page (1 unit per page), stopping at 200 uploads or once a page reaches uploads over 365 days old. Up to 200 video IDs go to step 4, upload details: videos.list with 50 IDs per call (1 unit per call), parts snippet, contentDetails, statistics, liveStreamingDetails and player; orientation is read from the player size. The API client counts quota units, retries server errors and rate limits, stops cleanly when the daily quota runs out, and reads the key from the YOUTUBE_API_KEY environment variable without logging it. Steps 2 to 6 run for each channel in turn. JSON items go to step 5, sort by format: Videos, Shorts, Live and premieres, or Scheduled or live now, which is not scored; hidden view counts are stored as NULL and left out of scoring. Upload rows go to step 6, snapshot saved: data/channel_health.db with tables runs, channels and videos; snapshots older than 30 days are deleted at the start of each run. The latest snapshot goes to step 7, score: expected views at each upload's age, per channel and format, with flags above or below expected for uploads from the last 30 days. Expected views and flags go to step 8, report: report/index.html with the channel summary, flagged uploads, views gained since the previous snapshot, the run log and a terms note. Steps 1 to 6 are the fetch command and steps 7 and 8 the report command. Snapshot 1: 10 channels, 64 calls, 64 of 10,000 daily quota units: 10 channels.list, 27 playlistItems.list and 27 videos.list calls, and 0 searches.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="10" refY="5" markerWidth="10" markerHeight="10" markerUnits="userSpaceOnUse" orient="auto">
+      <path d="M0,1.5 L10,5 L0,8.5 Z" fill="#57606A"/>
+    </marker>
+  </defs>
+  <rect x="0" y="0" width="960" height="1165" fill="#FFFFFF"/>
+  <g font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" fill="#1F2328" style="font-variant-ligatures: none">
+    <text x="40" y="34" font-size="18" font-weight="700">Process flow for each run</text>
+    <text x="40" y="57" font-size="13" fill="#57606A"><tspan font-family="Consolas, Menlo, monospace">python channel_health.py all</tspan>: <tspan font-family="Consolas, Menlo, monospace">fetch</tspan> (steps 1-6), then <tspan font-family="Consolas, Menlo, monospace">report</tspan> (steps 7-8)</text>
+    <rect x="40" y="74" width="880" height="48" rx="8" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <circle cx="66" cy="99" r="12" fill="#1F2328"/>
+    <text x="66" y="104" font-size="14" fill="#FFFFFF" font-weight="700" text-anchor="middle">1</text>
+    <text x="92" y="104" font-size="16" font-weight="700">Channel list</text>
+    <path d="M276,89 H286 L291,94 V109 H276 Z" fill="#FFFFFF" stroke="#57606A" stroke-width="1.25" stroke-linejoin="round"/>
+    <path d="M286,89 V94 H291" fill="none" stroke="#57606A" stroke-width="1.25" stroke-linejoin="round"/>
+    <text x="300" y="104" font-size="14"><tspan font-family="Consolas, Menlo, monospace">channels.json</tspan>: 10 channels with pinned channel IDs</text>
+    <rect x="24" y="150" width="912" height="480" rx="12" fill="#F3F8FD" stroke="#0969DA" stroke-width="1.5"/>
+    <text x="92" y="186" font-size="16" fill="#0969DA" font-weight="700">YouTube Data API v3</text>
+    <text x="92" y="208" font-size="13" fill="#57606A">Steps 2-6 run for</text>
+    <text x="92" y="227" font-size="13" fill="#57606A">each channel in turn</text>
+    <rect x="310" y="166" width="610" height="72" rx="8" fill="#FFFFFF" stroke="#D0D7DE" stroke-dasharray="4 3"/>
+    <text x="324" y="186" font-size="13"><tspan font-weight="700">API client:</tspan> counts quota units and retries server errors and rate limits</text>
+    <text x="324" y="205" font-size="13">Stops cleanly when the daily quota runs out</text>
+    <text x="324" y="224" font-size="13">Reads the key from the <tspan font-family="Consolas, Menlo, monospace">YOUTUBE_API_KEY</tspan> environment variable and never logs it</text>
+    <rect x="40" y="254" width="880" height="134" rx="8" fill="#FFFFFF" stroke="#D0D7DE"/>
+    <circle cx="66" cy="279" r="12" fill="#1F2328"/>
+    <text x="66" y="284" font-size="14" fill="#FFFFFF" font-weight="700" text-anchor="middle">2</text>
+    <text x="92" y="284" font-size="16" font-weight="700">Find each channel</text>
+    <text x="92" y="314" font-size="13" fill="#57606A">Tried in order until</text>
+    <text x="92" y="344" font-size="13" fill="#57606A">one finds the channel</text>
+    <text x="276" y="284" font-size="13" fill="#57606A" font-weight="600">1st</text>
+    <text x="276" y="314" font-size="13" fill="#57606A" font-weight="600">2nd</text>
+    <text x="276" y="344" font-size="13" fill="#57606A" font-weight="600">3rd</text>
+    <rect x="310" y="269" width="129" height="22" rx="4" fill="#FFFFFF" stroke="#0969DA" stroke-width="1.25"/>
+    <text x="374.5" y="284" font-size="13" fill="#0969DA" text-anchor="middle" font-family="Consolas, Menlo, monospace">channels.list</text>
+    <text x="449" y="284" font-size="14">by pinned ID</text>
+    <text x="904" y="284" font-size="13" fill="#57606A" text-anchor="end">1 unit</text>
+    <rect x="310" y="299" width="129" height="22" rx="4" fill="#FFFFFF" stroke="#0969DA" stroke-width="1.25"/>
+    <text x="374.5" y="314" font-size="13" fill="#0969DA" text-anchor="middle" font-family="Consolas, Menlo, monospace">channels.list</text>
+    <text x="449" y="314" font-size="14">by @handle</text>
+    <text x="904" y="314" font-size="13" fill="#57606A" text-anchor="end">1 unit</text>
+    <rect x="310" y="329" width="113" height="22" rx="4" fill="#FFFFFF" stroke="#0969DA" stroke-width="1.25"/>
+    <text x="366.5" y="344" font-size="13" fill="#0969DA" text-anchor="middle" font-family="Consolas, Menlo, monospace">search.list</text>
+    <text x="484" y="344" font-size="14" text-anchor="middle">by name, then</text>
+    <rect x="545" y="329" width="129" height="22" rx="4" fill="#FFFFFF" stroke="#0969DA" stroke-width="1.25"/>
+    <text x="609.5" y="344" font-size="13" fill="#0969DA" text-anchor="middle" font-family="Consolas, Menlo, monospace">channels.list</text>
+    <text x="904" y="344" font-size="13" fill="#57606A" text-anchor="end">1 of 100 daily searches, 1 unit</text>
+    <text x="276" y="370" font-size="14"><tspan font-weight="700">Name check:</tspan> skips a handle or search match whose title lacks the expected name</text>
+    <path d="M66,388 V414" fill="none" stroke="#57606A" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="80" y="408" font-size="13" fill="#57606A">uploads playlist ID</text>
+    <rect x="40" y="416" width="880" height="74" rx="8" fill="#FFFFFF" stroke="#D0D7DE"/>
+    <circle cx="66" cy="441" r="12" fill="#1F2328"/>
+    <text x="66" y="446" font-size="14" fill="#FFFFFF" font-weight="700" text-anchor="middle">3</text>
+    <text x="92" y="446" font-size="16" font-weight="700">Recent uploads</text>
+    <text x="92" y="472" font-size="13" fill="#57606A">Newest first</text>
+    <rect x="276" y="431" width="169" height="22" rx="4" fill="#FFFFFF" stroke="#0969DA" stroke-width="1.25"/>
+    <text x="360.5" y="446" font-size="13" fill="#0969DA" text-anchor="middle" font-family="Consolas, Menlo, monospace">playlistItems.list</text>
+    <text x="455" y="446" font-size="14">on the uploads playlist, 50 per page</text>
+    <text x="904" y="446" font-size="13" fill="#57606A" text-anchor="end">1 unit per page</text>
+    <text x="276" y="472" font-size="14">Stops at 200 uploads, or once a page reaches uploads over 365 days old</text>
+    <path d="M66,490 V516" fill="none" stroke="#57606A" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="80" y="510" font-size="13" fill="#57606A">up to 200 video IDs</text>
+    <rect x="40" y="518" width="880" height="96" rx="8" fill="#FFFFFF" stroke="#D0D7DE"/>
+    <circle cx="66" cy="543" r="12" fill="#1F2328"/>
+    <text x="66" y="548" font-size="14" fill="#FFFFFF" font-weight="700" text-anchor="middle">4</text>
+    <text x="92" y="548" font-size="16" font-weight="700">Upload details</text>
+    <rect x="276" y="533" width="113" height="22" rx="4" fill="#FFFFFF" stroke="#0969DA" stroke-width="1.25"/>
+    <text x="332.5" y="548" font-size="13" fill="#0969DA" text-anchor="middle" font-family="Consolas, Menlo, monospace">videos.list</text>
+    <text x="399" y="548" font-size="14">50 IDs per call</text>
+    <text x="904" y="548" font-size="13" fill="#57606A" text-anchor="end">1 unit per call</text>
+    <text x="276" y="574" font-size="14">Parts: <tspan font-family="Consolas, Menlo, monospace">snippet, contentDetails, statistics, liveStreamingDetails, player</tspan></text>
+    <text x="276" y="596" font-size="14">Orientation is read from the player size</text>
+    <path d="M66,122 V252" fill="none" stroke="#57606A" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="80" y="141" font-size="13" fill="#57606A">one <tspan font-family="Consolas, Menlo, monospace">channels.json</tspan> entry at a time</text>
+    <path d="M66,614 V656" fill="none" stroke="#57606A" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="80" y="650" font-size="13" fill="#57606A">JSON items</text>
+    <rect x="40" y="658" width="880" height="74" rx="8" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <circle cx="66" cy="683" r="12" fill="#1F2328"/>
+    <text x="66" y="688" font-size="14" fill="#FFFFFF" font-weight="700" text-anchor="middle">5</text>
+    <text x="92" y="688" font-size="16" font-weight="700">Sort by format</text>
+    <rect x="276" y="673" width="68" height="22" rx="11" fill="#D5DFE5" stroke="#2F5D7C" stroke-width="1.25"/>
+    <text x="310" y="688" font-size="13" text-anchor="middle">Videos</text>
+    <rect x="352" y="673" width="68" height="22" rx="11" fill="#F7E6D5" stroke="#D9822B" stroke-width="1.25"/>
+    <text x="386" y="688" font-size="13" text-anchor="middle">Shorts</text>
+    <rect x="428" y="673" width="155" height="22" rx="11" fill="#E1E8D3" stroke="#6B8E23" stroke-width="1.25"/>
+    <text x="505.5" y="688" font-size="13" text-anchor="middle">Live and premieres</text>
+    <rect x="591" y="673" width="177" height="22" rx="11" fill="#EAECEF" stroke="#8C959F" stroke-width="1.25"/>
+    <text x="679.5" y="688" font-size="13" text-anchor="middle">Scheduled or live now</text>
+    <text x="776" y="688" font-size="13" fill="#57606A">not scored</text>
+    <text x="276" y="714" font-size="14">Hidden view counts are stored as NULL and left out of scoring</text>
+    <path d="M66,732 V758" fill="none" stroke="#57606A" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="80" y="752" font-size="13" fill="#57606A">upload rows</text>
+    <rect x="40" y="760" width="880" height="96" rx="8" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <circle cx="66" cy="785" r="12" fill="#1F2328"/>
+    <text x="66" y="790" font-size="14" fill="#FFFFFF" font-weight="700" text-anchor="middle">6</text>
+    <text x="92" y="790" font-size="16" font-weight="700">Snapshot saved</text>
+    <text x="92" y="816" font-size="13" fill="#57606A">Kept for 30 days</text>
+    <path d="M276,774 V792 A11.0,4 0 0 0 298,792 V774" fill="#F3F0FB" stroke="#6E40C9" stroke-width="1.5"/>
+    <ellipse cx="287.0" cy="774" rx="11.0" ry="4" fill="#F3F0FB" stroke="#6E40C9" stroke-width="1.5"/>
+    <text x="308" y="790" font-size="14"><tspan font-family="Consolas, Menlo, monospace" fill="#6E40C9">data/channel_health.db</tspan></text>
+    <text x="276" y="816" font-size="14">Tables: <tspan font-family="Consolas, Menlo, monospace">runs, channels, videos</tspan></text>
+    <text x="276" y="838" font-size="14">Snapshots older than 30 days are deleted at the start of each run</text>
+    <path d="M66,856 V882" fill="none" stroke="#57606A" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="80" y="876" font-size="13" fill="#57606A">latest snapshot</text>
+    <rect x="40" y="884" width="880" height="76" rx="8" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <circle cx="66" cy="909" r="12" fill="#1F2328"/>
+    <text x="66" y="914" font-size="14" fill="#FFFFFF" font-weight="700" text-anchor="middle">7</text>
+    <text x="92" y="914" font-size="16" font-weight="700">Score</text>
+    <text x="276" y="914" font-size="14">Expected views at each upload's age, per channel and format</text>
+    <rect x="276" y="925" width="133" height="22" rx="11" fill="#E4EFEA" stroke="#1F7A4D" stroke-width="1.25"/>
+    <text x="342.5" y="940" font-size="13" fill="#1F7A4D" font-weight="600" text-anchor="middle">Above expected</text>
+    <rect x="417" y="925" width="133" height="22" rx="11" fill="#F6E5E3" stroke="#B42318" stroke-width="1.25"/>
+    <text x="483.5" y="940" font-size="13" fill="#B42318" font-weight="600" text-anchor="middle">Below expected</text>
+    <text x="560" y="940" font-size="14">flags for uploads from the last 30 days</text>
+    <path d="M66,960 V986" fill="none" stroke="#57606A" stroke-width="1.5" marker-end="url(#arrow)"/>
+    <text x="80" y="980" font-size="13" fill="#57606A">expected views and flags</text>
+    <rect x="40" y="988" width="880" height="92" rx="8" fill="#F6F8FA" stroke="#D0D7DE"/>
+    <circle cx="66" cy="1013" r="12" fill="#1F2328"/>
+    <text x="66" y="1018" font-size="14" fill="#FFFFFF" font-weight="700" text-anchor="middle">8</text>
+    <text x="92" y="1018" font-size="16" font-weight="700">Report</text>
+    <path d="M276,1003 H286 L291,1008 V1023 H276 Z" fill="#FFFFFF" stroke="#57606A" stroke-width="1.25" stroke-linejoin="round"/>
+    <path d="M286,1003 V1008 H291" fill="none" stroke="#57606A" stroke-width="1.25" stroke-linejoin="round"/>
+    <text x="300" y="1018" font-size="14"><tspan font-family="Consolas, Menlo, monospace">report/index.html</tspan>: channel summary and flagged uploads</text>
+    <text x="276" y="1040" font-size="14">Views gained since the previous snapshot</text>
+    <text x="276" y="1062" font-size="14">Run log and a terms note</text>
+    <path d="M40,1100 H920" fill="none" stroke="#D0D7DE"/>
+    <text x="40" y="1126" font-size="14"><tspan font-weight="700">Snapshot 1:</tspan> 10 channels, 64 calls, 64 of 10,000 daily quota units</text>
+    <text x="40" y="1147" font-size="13" fill="#57606A">64 calls = 10 <tspan font-family="Consolas, Menlo, monospace">channels.list</tspan> + 27 <tspan font-family="Consolas, Menlo, monospace">playlistItems.list</tspan> + 27 <tspan font-family="Consolas, Menlo, monospace">videos.list</tspan>, and 0 searches</text>
+  </g>
+</svg>

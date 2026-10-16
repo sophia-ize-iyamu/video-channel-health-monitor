@@ -190,3 +190,15 @@ def test_noisy_channel_needs_an_unusual_gap_not_just_double():
     assert out["mild"]["ratio"] > ch.HIGH and out["mild"]["flag"] == ""     # double, but normal for this channel
     assert out["huge"]["flag"] == "above expected"
     assert out["deep"]["flag"] == "below expected"
+
+
+def test_prune_deletes_snapshots_older_than_30_days(tmp_path, monkeypatch):
+    monkeypatch.setattr(ch, "DB", str(tmp_path / "t.db"))
+    con = ch.db_connect()
+    for run_id, days_ago in ((1, 40), (2, 31), (3, 5)):
+        ts = (NOW - timedelta(days=days_ago)).isoformat(timespec="seconds")
+        con.execute("INSERT INTO runs VALUES (?, ?, 0, 0, '[]')", (run_id, ts))
+        con.execute("INSERT INTO videos (run_id, video_id) VALUES (?, 'v')", (run_id,))
+    assert ch.prune(con, NOW) == 2
+    assert [r[0] for r in con.execute("SELECT run_id FROM runs")] == [3]
+    assert [r[0] for r in con.execute("SELECT run_id FROM videos")] == [3]

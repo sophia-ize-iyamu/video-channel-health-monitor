@@ -7,6 +7,7 @@ usually have at that age, and writes a static HTML report.
 Usage (set the YOUTUBE_API_KEY environment variable first):
     python channel_health.py fetch     # pull one snapshot
     python channel_health.py report    # build report/index.html from the latest snapshot
+    python channel_health.py report --run 1   # rebuild it for an earlier snapshot
     python channel_health.py all       # both
 """
 import json
@@ -18,7 +19,7 @@ import statistics
 import sys
 import time
 import unicodedata
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from html import escape
 
 import requests
@@ -30,6 +31,7 @@ COST = {"channels": 1, "playlistItems": 1, "videos": 1}  # units per call, from 
 # search.list has its own allowance (100 calls a day by default), so searches are counted separately.
 MAX_VIDEOS = 200        # most recent uploads pulled per channel
 HISTORY_DAYS = 365      # the baseline uses uploads up to a year old
+KEEP_DAYS = 30          # YouTube's API Developer Policies cap stored API data at 30 days
 RECENT_DAYS = 30        # only uploads from the last 30 days are flagged
 MIN_AGE_DAYS = 1        # uploads younger than a day are too new to judge
 MIN_GROUP = 8           # uploads a channel needs in one format before it gets a baseline
@@ -249,13 +251,26 @@ VIDEO_COLS = ("video_id", "title", "published", "duration_s", "width", "height",
               "fmt", "views", "likes", "comments")
 
 
+def prune(con, now):
+    """Deletes snapshots older than KEEP_DAYS, since YouTube's Developer Policies allow API data to be stored for
+    30 days at most. Returns how many snapshots were deleted."""
+    cutoff = (now - timedelta(days=KEEP_DAYS)).isoformat(timespec="seconds")
+    old = [(r[0],) for r in con.execute("SELECT run_id FROM runs WHERE ts < ?", (cutoff,))]
+    for table in ("videos", "channels", "runs"):
+        con.executemany(f"DELETE FROM {table} WHERE run_id = ?", old)
+    return len(old)
+
+
 def fetch(key, channels, now=None):
     c = Client(key)
     now = now or datetime.now(timezone.utc)
     con = db_connect()
+    pruned = prune(con, now)
     run_id = con.execute("INSERT INTO runs (ts, units, calls, log) VALUES (?, 0, 0, '[]')",
                          (now.isoformat(timespec="seconds"),)).lastrowid
     log = c.errors  # one list for API errors and data warnings
+    if pruned:
+        log.append(f"Deleted {pruned} snapshot{'s' if pruned != 1 else ''} older than {KEEP_DAYS} days")
     try:
         for entry in channels:
             ch, how = resolve_channel(c, entry)
@@ -288,9 +303,10 @@ def fetch(key, channels, now=None):
                     vals = (run_id, r["video_id"], ch["id"], *[r[k] for k in VIDEO_COLS[1:]])
                     con.execute(f"INSERT INTO videos VALUES ({','.join('?' * len(vals))})", vals)
             if no_size:
-                log.append(f"{entry['name']}: {no_size} uploads had no player size, so Shorts were judged by length alone")
+                log.append(f"{entry['name']}: {no_size} upload{'s' if no_size != 1 else ''} had no player size, so Shorts were judged by length alone")
             if hidden:
-                log.append(f"{entry['name']}: {hidden} uploads hide their view count and were left out of the scoring")
+                log.append(f"{entry['name']}: {hidden} upload{'s hide their' if hidden != 1 else ' hides its'} view count and "
+                           f"{'were' if hidden != 1 else 'was'} left out of the scoring")
     except QuotaExceeded as e:
         log.append(f"stopped early: {e}")
     con.execute("UPDATE runs SET units=?, calls=?, log=? WHERE run_id=?", (c.units, c.calls, json.dumps(log), run_id))
@@ -312,16 +328,17 @@ def growth(con, run):
     return dict(prev_ts=prev["ts"], hours=hours, rows=rows)
 
 
-def report():
+def report(run_id=None):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
     con = db_connect()
     con.row_factory = sqlite3.Row
-    run = con.execute("SELECT * FROM runs ORDER BY run_id DESC LIMIT 1").fetchone()
+    run = (con.execute("SELECT * FROM runs WHERE run_id = ?", (run_id,)).fetchone() if run_id else
+           con.execute("SELECT * FROM runs ORDER BY run_id DESC LIMIT 1").fetchone())
     if not run:
-        sys.exit("No data yet. Run: python channel_health.py fetch")
+        sys.exit("No such snapshot yet. Run: python channel_health.py fetch")
     rid, now = run["run_id"], parse_ts(run["ts"])
     chans = [dict(r) for r in con.execute("SELECT * FROM channels WHERE run_id=? ORDER BY rowid", (rid,))]
     vids = score_videos([dict(r) for r in con.execute("SELECT * FROM videos WHERE run_id=?", (rid,))], now)
@@ -334,13 +351,10 @@ def report():
     for c in chans:
         vs = [v for v in vids if v["channel_id"] == c["channel_id"] and v["fmt"] in FORMATS
               and v["age_days"] <= HISTORY_DAYS]
-        span = max((v["age_days"] for v in vs), default=0)
-        eng = [((v["likes"] or 0) + (v["comments"] or 0)) / v["views"] for v in vs
-               if v["views"] and v["likes"] is not None and v["age_days"] >= MIN_AGE_DAYS]
+        # days covered is the window the fetch checked: back to the 200th upload, or the full year if fewer
+        span = min(max((v["age_days"] for v in vids if v["channel_id"] == c["channel_id"]), default=0), HISTORY_DAYS)
         summary.append(dict(c, n=len(vs), span=span, mix={f: sum(v["fmt"] == f for v in vs) for f in FORMATS},
                             per_week=len(vs) / (span / 7) if span >= 1 else None,
-                            eng=statistics.median(eng) if eng else None,
-                            comments_off=bool(vs) and all(v["comments"] is None for v in vs),
                             scored=sum(v["expected"] is not None for v in vs),
                             below=sum(v["flag"] == "below expected" for v in vs),
                             above=sum(v["flag"] == "above expected" for v in vs)))
@@ -349,14 +363,18 @@ def report():
     colors = {"Videos": "#2F5D7C", "Shorts": "#D9822B", "Live and premieres": "#6B8E23"}
     fig, ax = plt.subplots(figsize=(8, 0.42 * len(summary) + 1.4))
     names = [s["title"][:28] for s in summary]
+    ys = list(range(len(summary)))
     left = [0.0] * len(summary)
     for f in FORMATS:
         vals = [100 * s["mix"][f] / s["n"] if s["n"] else 0 for s in summary]
-        ax.barh(names, vals, left=left, color=colors[f], label=f)
+        ax.barh(ys, vals, left=left, color=colors[f], label=f)
         for i, (l, w) in enumerate(zip(left, vals)):
             if w >= 8:
                 ax.text(l + w / 2, i, f"{w:.0f}%", ha="center", va="center", color="white", fontsize=8)
         left = [a + b for a, b in zip(left, vals)]
+    ax.set_yticks(ys, names)
+    for t in ax.get_yticklabels():
+        t.set_parse_math(False)
     ax.set_xlim(0, 100)
     ax.set_xlabel("Share of uploads analysed (%)")
     ax.set_title("Format mix of each channel's uploads")
@@ -377,7 +395,6 @@ def report():
         f"<td>{s['n']}</td><td>{s['span']:.0f}</td>"
         f"<td>{'n/a' if s['per_week'] is None else format(s['per_week'], ',.1f')}</td>"
         f"<td>{s['mix']['Videos']} / {s['mix']['Shorts']} / {s['mix']['Live and premieres']}</td>"
-        f"<td>{pct(s['eng'])}{' (likes only, comments off)' if s['comments_off'] else ''}</td>"
         f"<td>{s['below']}</td><td>{s['above']}</td></tr>" for s in summary)
 
     def vrow(v):
@@ -428,15 +445,15 @@ th,td{{border-bottom:1px solid #dde1e6;padding:6px 8px;text-align:left;vertical-
 td{{font-variant-numeric:tabular-nums}}.note{{color:#4b5563;font-size:13.5px;max-width:75ch}}img{{max-width:100%}}
 .wrap{{overflow-x:auto}}summary{{cursor:pointer;margin:4px 0 12px}}</style></head><body>
 <h1>Video Channel Health Monitor</h1>
-<p class="note">Snapshot taken {escape(run['ts'])} UTC through the YouTube Data API v3: {len(chans)} channels and {total:,} uploads
+<p class="note">Snapshot taken {now:%d %b %Y, %H:%M} UTC through the YouTube Data API v3: {len(chans)} channels and {total:,} uploads
 from the last 12 months (up to {MAX_VIDEOS} most recent per channel). This pull used {run['units']} quota units in {run['calls']}
 calls, against a default daily quota of 10,000. Snapshots stored so far: {nruns}.</p>
 <h2>Channel summary</h2>
 <div class="wrap"><table><tr><th>Channel</th><th>Vertical</th><th>Subscribers</th><th>Uploads analysed</th><th>Days covered</th>
-<th>Uploads per week</th><th>Videos / Shorts / Live and premieres</th><th>Median engagement</th>
+<th>Uploads per week</th><th>Videos / Shorts / Live and premieres</th>
 <th>Below expected (last 30 days)</th><th>Above expected (last 30 days)</th></tr>{srows}</table></div>
-<p class="note">Engagement is (likes + comments) / views for uploads at least a day old. Days covered is the age of the oldest
-upload analysed, so busy channels cover a shorter window.</p>
+<p class="note">Days covered is the window the monitor checked: back to a channel's 200th most recent upload, or the full
+year when it posted fewer.</p>
 <img src="format_mix.png" alt="Share of each channel's uploads that are videos, Shorts, or live streams and premieres">
 <h2>Recent uploads below expected</h2>
 <p class="note">Uploads from the last {RECENT_DAYS} days with under {LOW}x the views the same channel's uploads of the same format
@@ -450,7 +467,7 @@ usually have at that age, where the gap is also unusual for that channel (robust
 <h2>Method</h2>
 <p class="note">For each channel and format with at least {MIN_GROUP} uploads aged 1 to 365 days, the monitor fits a line through
 log(views) against log(age) using the Theil-Sen method, which takes the median of all pairwise slopes, so a few breakout uploads
-can't drag the line. Expected views is that line at an upload's age, and the ratio is actual views over expected. Views on busy
+have little effect on the line. Expected views is that line at an upload's age, and the ratio is actual views over expected. Views on busy
 sports and news channels often come in at a quarter or four times the expected figure, so a flag needs two things: a ratio under {LOW}x or over
 {HIGH}x, and a gap of more than {Z_LIMIT:g} robust standard deviations (1.4826 times the median absolute deviation of that channel's
 gaps, on the log scale). Shorts follow
@@ -458,6 +475,10 @@ YouTube's rule: vertical or square and up to 3 minutes long (60 seconds before 1
 player size the API returns. The API marks live streams and premieres the same way, so they're grouped together. Scheduled and
 in-progress streams, and uploads that hide their view count, aren't scored.</p>
 <h2>Run log</h2><p class="note">{'<br>'.join(escape(e) for e in log) or 'No errors or warnings.'}</p>
+<h2>Terms</h2><p class="note">Data from YouTube API Services. By using this tool, you agree to be bound by the
+<a href="https://www.youtube.com/t/terms">YouTube Terms of Service</a>. The tool collects no personal data and deletes stored
+YouTube data after {KEEP_DAYS} days. <a href="https://www.google.com/policies/privacy">Google Privacy Policy</a>. Expected views and
+flags are this project's own calculations, not YouTube data. Not affiliated with or endorsed by YouTube or Google.</p>
 </body></html>"""
     with open(os.path.join(HERE, "report", "index.html"), "w", encoding="utf-8") as fh:
         fh.write(html)
@@ -479,7 +500,8 @@ def main():
         for e in c.errors:
             print("  -", e)
     if cmd in ("report", "all"):
-        summary, below, above, run = report()
+        run_id = int(sys.argv[sys.argv.index("--run") + 1]) if "--run" in sys.argv else None
+        summary, below, above, run = report(run_id)
         print(f"report: {len(summary)} channels, {sum(s['n'] for s in summary)} uploads, "
               f"{len(below)} below and {len(above)} above expected -> report/index.html")
 
